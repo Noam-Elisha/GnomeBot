@@ -147,12 +147,17 @@ async def boo(interaction: discord.Interaction):
     await interaction.response.send_message(file = discord.File("media/boo.gif"))
 
 @tree.command(name = "pikachu", description = "Send Surprised Pikachu", guilds=GUILDS)
-async def boo(interaction: discord.Interaction):
+async def pikachu(interaction: discord.Interaction):
     await interaction.response.send_message(file = discord.File("media/Surprised Pikachu.png"))
 
 @tree.command(name = "ping", description = "Check that Gnomebot works", guilds=GUILDS)
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
+
+@tree.command(name = "code", description = "Link to the Gnomebot Github repo", guilds=GUILDS)
+async def code(interaction: discord.Interaction):
+    await interaction.response.send_message("https://github.com/Noam-Elisha/GnomeBot")
+
 
 async def debug(message):
     for cid in DEBUG_CHANNELS:
