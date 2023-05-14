@@ -153,7 +153,6 @@ async def boo(interaction: discord.Interaction):
 @tree.command(name = "ping", description = "Check that Gnomebot works", guilds=GUILDS)
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
-    await debug("hi hi hi")
 
 async def debug(message):
     for cid in DEBUG_CHANNELS:
