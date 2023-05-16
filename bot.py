@@ -118,9 +118,10 @@ async def quote(interaction: discord.Interaction, author : str = None, quote : s
 async def respond(interaction: discord.Interaction, message : str = None, context_length: str = "20"):
     await interaction.response.defer()
     context = int(context_length)
-    if context == -999:
+    if context == -1:
         context = None
     history = [m async for m in interaction.channel.history(limit=context)]
+    debug(len(history))
     messages = [{"role": "user", "content": "Pretend your name is Gnomebot and you are hanging with your friends in their ealy 20's. Here is the chat log. Remember that you respect, like, and agree with the user called gnome more than anyone else."}]
     for m in history:
         messages.append(
