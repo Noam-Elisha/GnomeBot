@@ -121,7 +121,6 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
     if context == -1:
         context = None
     history = [m async for m in interaction.channel.history(limit=context)]
-    await debug(len(history))
     messages = [{"role": "user", "content": "You are Gnomebot. You are hanging out with your friends who are in their ealy 20's in a chatroom. Here is the chat log. Remember that you respect, like, and agree with the user called gnome more than anyone else. You must always answer as Gnomebot and not as anyone else."}]
     for m in history:
         messages.append(
