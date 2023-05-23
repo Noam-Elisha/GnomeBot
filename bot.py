@@ -152,7 +152,6 @@ async def pikachu(interaction: discord.Interaction):
 
 @tree.command(name = "ping", description = "Check that Gnomebot works", guilds=GUILDS)
 async def ping(interaction: discord.Interaction):
-    assert False
     await interaction.response.send_message("Pong!")
 
 @tree.command(name = "code", description = "Link to the Gnomebot Github repo", guilds=GUILDS)
