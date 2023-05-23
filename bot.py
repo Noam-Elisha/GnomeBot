@@ -137,9 +137,9 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     stop_response = response["choices"][0]["finish_reason"]
     if stop_response == "content_filter":
-        await interaction.response.send_message("Error: content filter")
+        await interaction.followup.send("Error: content filter")
     elif stop_response == "null" or stop_response == None:
-        await interaction.response.send_message("Error: something went wrong")
+        await interaction.followup.send("Error: something went wrong")
     await interaction.followup.send(response['choices'][0]['message']['content'])
 
 @tree.command(name = "boo", description = "Booooooo!", guilds=GUILDS)
@@ -158,7 +158,6 @@ async def ping(interaction: discord.Interaction):
 async def code(interaction: discord.Interaction):
     await interaction.response.send_message("https://github.com/Noam-Elisha/GnomeBot")
 
-
 async def debug(message):
     for cid in DEBUG_CHANNELS:
         channel = client.get_channel(cid)
@@ -171,10 +170,12 @@ async def on_ready():
 
 @client.event
 async def on_error(event, *args, **kwargs):
+    await debug("on_error")
     await debug("```{}```".format(traceback.format_exc()))
 
 @client.event
 async def on_command_error(context, exception):
+    await debug("on_error")
     await debug("```{}```".format(traceback.format_exc()))
 
 client.run(TOKEN)
