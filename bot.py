@@ -134,7 +134,10 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
                 "role": "user", "content": f"{interaction.user.name}: {message}"
             }
         )
-    response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    try:
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    except openai.error.RateLimitError:
+        interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral =True)
     stop_response = response["choices"][0]["finish_reason"]
     if stop_response == "content_filter":
         await interaction.followup.send("Error: content filter")
