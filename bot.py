@@ -11,9 +11,11 @@ with open("tokens.json", "r") as f:
 
 NICKNAMES = TOKENS["nicknames"]
 GUILD_IDs = TOKENS["guilds"]
+ADMIN_GUILD_IDs = TOKENS["admin_guilds"]
+GUILDS = [discord.Object(id=g) for g in GUILD_IDs]
+ADMIN_GUILDS = [discord.Object(id=g) for g in ADMIN_GUILD_IDs]
 ADMINS = TOKENS["admins"]
 DEBUG_CHANNELS = TOKENS["debug_channels"]
-GUILDS = [discord.Object(id=g) for g in GUILD_IDs]
 TOKEN = TOKENS["bot_token"]
 QUOTE_CHANNEL = TOKENS["quote_channel"]
 openai.api_key = TOKENS["openai_key"]
@@ -33,26 +35,26 @@ async def check_permissions(interaction: discord.Interaction):
     if interaction.user.id not in ADMINS:
             await interaction.response.send_message("You do not have the permissions for this")
         
-@tree.command(name = "sync", description = "sync commands with server", guilds=GUILDS)
+@tree.command(name = "sync", description = "sync commands with server", guilds=ADMIN_GUILDS)
 async def sync(interaction: discord.Interaction):
     await check_permissions(interaction)
     await interaction.response.send_message("Syncing commands!")
     await sync_commands()
 
-@tree.command(name = "update", description = "Update Gnomebot's code", guilds=GUILDS)
+@tree.command(name = "update", description = "Update Gnomebot's code", guilds=ADMIN_GUILDS)
 async def update(interaction: discord.Interaction):
     await check_permissions(interaction)
     await interaction.response.send_message("Updating!")
     os.system("git pull")
     sys.exit(0)
 
-@tree.command(name = "stop", description = "shut down gnomebot", guilds=GUILDS)
+@tree.command(name = "stop", description = "shut down gnomebot", guilds=ADMIN_GUILDS)
 async def stop(interaction: discord.Interaction):
     await check_permissions(interaction)
     await interaction.response.send_message("Shutting down!")
     sys.exit(-1)
 
-@tree.command(name = "restart", description = "reboot gnomebot", guilds=GUILDS)
+@tree.command(name = "restart", description = "reboot gnomebot", guilds=ADMIN_GUILDS)
 async def restart(interaction : discord.Interaction):
     await check_permissions(interaction)
     await interaction.response.send_message("Restarting!")
