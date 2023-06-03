@@ -60,6 +60,18 @@ async def restart(interaction : discord.Interaction):
     await interaction.response.send_message("Restarting!")
     sys.exit(0)
 
+@tree.command(name = "say", description = "say a message in a channel", guilds=ADMIN_GUILDS)
+async def say(interaction: discord.Interaction, message: str, channel: str = None):
+    if interaction.user.id not in ADMINS:
+        await interaction.response.send_message("You do not have the permissions for this")
+        return
+    if channel == None:
+        await interaction.response.pong()
+        await interaction.channel.send(message)
+        return
+    channel = client.get_channel(int(channel))
+    await channel.send(message)
+
 @tree.command(name = "mock", description = "MoCk tHe PrEvIoUs MeSsAgE", guilds=GUILDS)
 async def mock(interaction: discord.Interaction):
     channel =  interaction.channel
@@ -86,17 +98,6 @@ async def clapback(interaction: discord.Interaction, message: str):
     output += content[-1]
     await interaction.response.send_message(output)
 
-@tree.command(name = "say", description = "say a message in a channel", guilds=GUILDS)
-async def say(interaction: discord.Interaction, message: str, channel: str = None):
-    if interaction.user.id not in ADMINS:
-        await interaction.response.send_message("You do not have the permissions for this")
-        return
-    if channel == None:
-        await interaction.response.pong()
-        await interaction.channel.send(message)
-        return
-    channel = client.get_channel(int(channel))
-    await channel.send(message)
 
 @tree.command(name = "quote", description = "quote something to the quotes channel", guilds=GUILDS)
 @app_commands.describe(author = "Optional: Must be used alongside 'quote'")
