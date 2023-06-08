@@ -9,6 +9,17 @@ import os
 with open("tokens.json", "r") as f:
     TOKENS = json.load(f)
 
+if not os.path.exists("channel_locked.gb"):
+    with open("channel_locked.gb", "w") as f:
+        f.write("0")
+else:
+    with open("channel_locked.gb", "r") as f:
+        bit = f.read()
+        if bit == "0":
+            CHANNEL_LOCKED = False
+        else:
+            CHANNEL_LOCKED = True
+
 NICKNAMES = TOKENS["nicknames"]
 GUILD_IDs = TOKENS["guilds"]
 ADMIN_GUILD_IDs = TOKENS["admin_guilds"]
@@ -19,6 +30,12 @@ DEBUG_CHANNELS = TOKENS["debug_channels"]
 TOKEN = TOKENS["bot_token"]
 QUOTE_CHANNEL = TOKENS["quote_channel"]
 openai.api_key = TOKENS["openai_key"]
+
+WEREWOLF_GUILD_ID = TOKENS["werewolf_guild_id"]
+GM_ROLE_ID = TOKENS["gm_role_id"]
+GM_ID = TOKENS["gm_id"]
+WEREWOLF_CHANNEL_ID = TOKENS["werewolf_channel_id"]
+
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
@@ -185,6 +202,50 @@ async def poll(interaction: discord.Interaction, option1: str = None, option2: s
     for emoji in emojis:
         await message.add_reaction(emoji)
 
+@tree.command(name = "lock", description = "Lock the werewolf channel", guild = discord.Object(id=WEREWOLF_GUILD_ID))
+@app_commands.checks.has_role(GM_ROLE_ID)
+async def lock(interaction: discord.Interaction):
+    if interaction.user.id != GM_ID:
+        await interaction.response.send_message("Only the GM can lock/unlock the werewolf channel", ephemeral = True)
+        return
+    if interaction.channel.id != WEREWOLF_CHANNEL_ID:
+        await interaction.response.send_message("You can only lock/unlock the werewolf channel", ephemeral=True)
+        return
+    werewolf_guild = client.get_guild(WEREWOLF_GUILD_ID)
+    await interaction.channel.set_permissions(werewolf_guild.default_role, send_messages = False, read_messages = True)
+    await interaction.channel.set_permissions(werewolf_guild.get_role(GM_ROLE_ID), send_messages = True, read_messages = True)
+    await interaction.response.send_message("The channel is now locked")
+    with open("channel_locked.gb", "w") as f:
+        f.write("1")
+    global CHANNEL_LOCKED
+    CHANNEL_LOCKED = True
+
+@tree.command(name = "unlock", description = "Unlock the werewolf channel", guild = discord.Object(id=WEREWOLF_GUILD_ID))
+@app_commands.checks.has_role(GM_ROLE_ID)
+async def unlock(interaction: discord.Interaction):
+    if interaction.user.id != GM_ID:
+        await interaction.response.send_message("Only the GM can lock/unlock the werewolf channel", ephemeral = True)
+        return
+    if interaction.channel.id != WEREWOLF_CHANNEL_ID:
+        await interaction.response.send_message("You can only lock/unlock the werewolf channel", ephemeral=True)
+        return
+    werewolf_guild = client.get_guild(WEREWOLF_GUILD_ID)
+    await interaction.channel.set_permissions(werewolf_guild.default_role, send_messages = True, read_messages = True)
+    await interaction.channel.set_permissions(werewolf_guild.get_role(GM_ROLE_ID), send_messages = True, read_messages = True)
+    await interaction.response.send_message("The channel has been unlocked")
+    with open("channel_locked.gb", "w") as f:
+        f.write("0")
+    global CHANNEL_LOCKED
+    CHANNEL_LOCKED = False
+
+@client.event
+async def on_message(message):
+    if CHANNEL_LOCKED:
+        if message.channel.id == WEREWOLF_CHANNEL_ID:
+            if message.author.id != GM_ID:
+                await message.delete()
+    
+
 async def debug(message):
     for cid in DEBUG_CHANNELS:
         channel = client.get_channel(cid)
@@ -192,6 +253,7 @@ async def debug(message):
     
 @client.event
 async def on_ready():
+    await sync_commands()
     await debug("Gnomebot is online!")
     print("Gnomebot is Online!")
 
