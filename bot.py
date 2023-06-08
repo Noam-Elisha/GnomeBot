@@ -8,17 +8,12 @@ import os
 
 with open("tokens.json", "r") as f:
     TOKENS = json.load(f)
-
-if not os.path.exists("channel_locked.gb"):
-    with open("channel_locked.gb", "w") as f:
-        f.write("0")
-else:
-    with open("channel_locked.gb", "r") as f:
-        bit = f.read()
-        if bit == "0":
-            CHANNEL_LOCKED = False
-        else:
-            CHANNEL_LOCKED = True
+with open("channel_locked.gb", "r") as f:
+    bit = f.read()
+    if bit == "0":
+        CHANNEL_LOCKED = False
+    else:
+        CHANNEL_LOCKED = True
 
 NICKNAMES = TOKENS["nicknames"]
 GUILD_IDs = TOKENS["guilds"]
@@ -259,12 +254,10 @@ async def on_ready():
 
 @client.event
 async def on_error(event, *args, **kwargs):
-    await debug("on_error")
     await debug("```{}```".format(traceback.format_exc()))
 
 @client.event
 async def on_command_error(context, exception):
-    await debug("on_error")
     await debug("```{}```".format(traceback.format_exc()))
 
 client.run(TOKEN)
