@@ -177,18 +177,22 @@ async def code(interaction: discord.Interaction):
     await interaction.response.send_message("https://github.com/Noam-Elisha/GnomeBot")
 
 @tree.command(name = "poll", description = "Make a poll", guilds = GUILDS)
+@app_commands.describe(message="Poll message")
 @app_commands.describe(option1="Poll option 1")
 @app_commands.describe(option2="Poll option 2")
 @app_commands.describe(option3="Poll option 3")
 @app_commands.describe(option4="Poll option 4")
-async def poll(interaction: discord.Interaction, option1: str = None, option2: str = None, option3: str = None, option4: str = None):
+async def poll(interaction: discord.Interaction, message: str = None, option1: str = None, option2: str = None, option3: str = None, option4: str = None):
     options = [option1, option2, option3, option4]
     if not any(options):
         await interaction.response.send_message("Please add at least one poll option", ephemeral=True)
         return
     options = [x for x in options if x is not None]
     emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"][:len(options)]
-    message = "Please vote by reacting with the corresponding reaction\n```\n"
+    if message is not None:
+        message = f"{message}\n```\n"
+    else:
+        message = "Please vote by reacting with the corresponding reaction\n```\n"
     for i, option in enumerate(options):
         message += f"{emojis[i]} - {option}\n"
     message += "```"
