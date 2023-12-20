@@ -9,6 +9,8 @@ from typing import Literal
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
+from io import BytesIO
+from base64 import b64decode
 
 with open("tokens.json", "r") as f:
     TOKENS = json.load(f)
@@ -173,18 +175,25 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 @app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
 async def respond(interaction: discord.Interaction, prompt : str, quality: Literal["standard", "hd"] = "standard",
                     size: Literal["1024x1024", "1024x1792", "1792x1024"] = "1024x1024"):
-    await interaction.followup.send("pong")
-    return
+    await interaction.response.defer()
+
     response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
             size=size,
             quality=quality,
             n=1,
+            response_format="b64_json"
         )
+
+    # for index, image_dict in enumerate(response["data"]):
+    #     image_data = b64decode(image_dict["b64_json"])
+    #     with open("temp.png", mode="wb") as png:
+    #         png.write(image_data)
+    img = discord.File(b64decode(response["data"][0]))
+    await interaction.followup.send(file=img)
+
     
-
-
 @tree.command(name = "boo", description = "Booooooo!", guilds=GUILDS)
 async def boo(interaction: discord.Interaction):
     await interaction.response.send_message(file = discord.File("media/boo.gif"))
