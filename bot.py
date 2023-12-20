@@ -177,14 +177,18 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
                     size: Literal["1024x1024", "512×512", "256×256"] = "1024x1024"):
     await interaction.response.defer()
 
-    response = openai.images.generate(
-            model="dall-e-2",
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=1,
-            response_format="b64_json"
-        )
+    try:
+        response = openai.images.generate(
+                model="dall-e-2",
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=1,
+                response_format="b64_json"
+            )
+    except openai.BadRequestError as e:
+        await interaction.followup.send(e.message)
+        return
 
     # for index, image_dict in enumerate(response["data"]):
     #     image_data = b64decode(image_dict["b64_json"])
