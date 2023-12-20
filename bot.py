@@ -5,6 +5,7 @@ import openai
 import traceback
 import json
 import os
+import time
 from typing import Literal
 from PIL import Image
 from PIL import ImageFont
@@ -187,13 +188,10 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
                 response_format="b64_json"
             )
     except openai.BadRequestError as e:
-        await interaction.followup.send(e.message)
+        time.sleep(3)
+        await interaction.followup.send(e.body["message"])
         return
 
-    # for index, image_dict in enumerate(response["data"]):
-    #     image_data = b64decode(image_dict["b64_json"])
-    #     with open("temp.png", mode="wb") as png:
-    #         png.write(image_data)
     imgfile = BytesIO(b64decode(response.data[0].b64_json))
     imgfile.name = "image.png"
     img = discord.File(imgfile)
