@@ -177,7 +177,7 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
                     size: Literal["1024x1024", "1024x1792", "1792x1024"] = "1024x1024"):
     await interaction.response.defer()
 
-    response = client.images.generate(
+    response = openai.images.generate(
             model="dall-e-3",
             prompt=prompt,
             size=size,
@@ -235,27 +235,27 @@ async def poll(interaction: discord.Interaction, message: str = None, option1: s
     for emoji in emojis:
         await message.add_reaction(emoji)
 
-@tree.command(name = "inspire", description = "Generate an inspirational image", guilds = GUILDS)
-@app_commands.describe(message="Message to write on the image")
-async def inspire(interaction: discord.Interaction, message: str = ""):
-    chatGPT_prompt = "Give me a creative prompt for DALL-E, the image generator, that will generate me an image for the background of an inspirational message, but don't mention anything about a message"
-    messages = [
-        {
-        "role": "user", "prompt": chatGPT_prompt
-        }
-    ]
-    try:
-        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
-    except openai.error.RateLimitError:
-        interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral = True)
-        return
-    stop_response = response["choices"][0]["finish_reason"]
-    if stop_response == "content_filter":
-        await interaction.followup.send("Error: content filter")
-        return
-    elif stop_response == "null" or stop_response == None:
-        await interaction.followup.send("Error: something went wrong")
-        return
+# @tree.command(name = "inspire", description = "Generate an inspirational image", guilds = GUILDS)
+# @app_commands.describe(message="Message to write on the image")
+# async def inspire(interaction: discord.Interaction, message: str = ""):
+#     chatGPT_prompt = "Give me a creative prompt for DALL-E, the image generator, that will generate me an image for the background of an inspirational message, but don't mention anything about a message"
+#     messages = [
+#         {
+#         "role": "user", "prompt": chatGPT_prompt
+#         }
+#     ]
+#     try:
+#         response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+#     except openai.error.RateLimitError:
+#         interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral = True)
+#         return
+#     stop_response = response["choices"][0]["finish_reason"]
+#     if stop_response == "content_filter":
+#         await interaction.followup.send("Error: content filter")
+#         return
+#     elif stop_response == "null" or stop_response == None:
+#         await interaction.followup.send("Error: something went wrong")
+#         return
 
 
 @tree.command(name = "lock", description = "Lock the werewolf channel", guild = discord.Object(id=WEREWOLF_GUILD_ID))
