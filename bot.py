@@ -178,7 +178,7 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
     await interaction.response.defer()
 
     response = openai.images.generate(
-            model="dall-e-3",
+            model="dall-e-2",
             prompt=prompt,
             size=size,
             quality=quality,
