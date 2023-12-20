@@ -5,6 +5,10 @@ import openai
 import traceback
 import json
 import os
+from typing import Literal
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 
 with open("tokens.json", "r") as f:
     TOKENS = json.load(f)
@@ -127,7 +131,7 @@ async def quote(interaction: discord.Interaction, author : str = None, quote : s
     await channel.send(f"\n{quote}\n\n-{author}\n")
     await interaction.response.pong()
 
-@tree.command(name = "respond", description = "talk to gnomebot", guilds=GUILDS)
+@tree.command(name = "respond", description = "Talk to gnomebot", guilds=GUILDS)
 @app_commands.describe(message="Optional: What to say to Gnomebot")
 @app_commands.describe(context_length="Optional: How many message to give as context (default 20)")
 async def respond(interaction: discord.Interaction, message : str = None, context_length: str = "20"):
@@ -153,12 +157,33 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
         response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     except openai.error.RateLimitError:
         interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral =True)
+        return
     stop_response = response["choices"][0]["finish_reason"]
     if stop_response == "content_filter":
         await interaction.followup.send("Error: content filter")
+        return
     elif stop_response == "null" or stop_response == None:
         await interaction.followup.send("Error: something went wrong")
+        return
     await interaction.followup.send(response['choices'][0]['message']['content'])
+
+@tree.command(name = "image", description = "Make gnomebot generate an image", guilds=GUILDS)
+@app_commands.describe(prompt="What image to generate")
+@app_commands.describe(quality="Quality of the image to generade (hd is slower)")
+@app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
+async def respond(interaction: discord.Interaction, prompt : str, quality: Literal["standard", "hd"] = "standard",
+                    size: Literal["1024x1024", "1024x1792", "1792x1024"] = "1024x1024"):
+    await interaction.followup.send("pong")
+    return
+    response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            n=1,
+        )
+    
+
 
 @tree.command(name = "boo", description = "Booooooo!", guilds=GUILDS)
 async def boo(interaction: discord.Interaction):
@@ -200,6 +225,29 @@ async def poll(interaction: discord.Interaction, message: str = None, option1: s
     message = await interaction.original_response()
     for emoji in emojis:
         await message.add_reaction(emoji)
+
+@tree.command(name = "inspire", description = "Generate an inspirational image", guilds = GUILDS)
+@app_commands.describe(message="Message to write on the image")
+async def inspire(interaction: discord.Interaction, message: str = ""):
+    chatGPT_prompt = "Give me a creative prompt for DALL-E, the image generator, that will generate me an image for the background of an inspirational message, but don't mention anything about a message"
+    messages = [
+        {
+        "role": "user", "prompt": chatGPT_prompt
+        }
+    ]
+    try:
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    except openai.error.RateLimitError:
+        interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral = True)
+        return
+    stop_response = response["choices"][0]["finish_reason"]
+    if stop_response == "content_filter":
+        await interaction.followup.send("Error: content filter")
+        return
+    elif stop_response == "null" or stop_response == None:
+        await interaction.followup.send("Error: something went wrong")
+        return
+
 
 @tree.command(name = "lock", description = "Lock the werewolf channel", guild = discord.Object(id=WEREWOLF_GUILD_ID))
 @app_commands.checks.has_role(GM_ROLE_ID)
