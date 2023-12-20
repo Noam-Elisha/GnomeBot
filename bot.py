@@ -173,8 +173,8 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 @app_commands.describe(prompt="What image to generate")
 @app_commands.describe(quality="Quality of the image to generade (hd is slower)")
 @app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
-async def respond(interaction: discord.Interaction, prompt : str, quality: Literal["standard", "hd"] = "standard",
-                    size: Literal["1024x1024", "1024x1792", "1792x1024"] = "1024x1024"):
+async def respond(interaction: discord.Interaction, prompt : str, quality: Literal["standard"] = "standard",
+                    size: Literal["1024x1024", "512×512", "256×256"] = "1024x1024"):
     await interaction.response.defer()
 
     response = openai.images.generate(
