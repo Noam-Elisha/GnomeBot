@@ -190,7 +190,7 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
     #     image_data = b64decode(image_dict["b64_json"])
     #     with open("temp.png", mode="wb") as png:
     #         png.write(image_data)
-    img = discord.File(b64decode(json.loads(response)["data"][0]))
+    img = discord.File(b64decode(response.data[0].b64_json))
     await interaction.followup.send(file=img)
 
     
