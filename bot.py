@@ -5,7 +5,7 @@ import openai
 import traceback
 import json
 import os
-import time
+import asyncio
 from typing import Literal
 from PIL import Image
 from PIL import ImageFont
@@ -191,7 +191,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 #                 response_format="b64_json"
 #             )
 #     except openai.BadRequestError as e:
-#         time.sleep(3)
+#         await asyncio.sleep(1)
 #         await interaction.followup.send(e.body["message"])
 #         return
 
@@ -203,13 +203,13 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 @tree.command(name = "image", description = "Generate an image with Dalle3", guilds=GUILDS)
 @app_commands.describe(prompt="What image to generate")
 @app_commands.describe(number="How many images to generate (must be less than 4)")
-async def image(interaction: discord.Interaction, prompt : str, number: Literal[1,2,3,4] = 1):
+async def image(interaction: discord.Interaction, prompt : str, number: Literal[1,2,3,4] = 4):
     await interaction.response.defer()
     filenames = []
     try:
-        filenames = BingImageCreator.generate_image(prompt, "images", number)
+        filenames = await BingImageCreator.generate_image(prompt, "images", number)
     except BingImageCreator.ImageCreatorException as e:
-        time.sleep(3)
+        await asyncio.sleep(3)
         await interaction.followup.send(str(e))
         return
     

@@ -11,8 +11,10 @@ from typing import Dict
 from typing import List
 from typing import Union
 
+import asyncio
 import regex
 import requests
+import httpx
 
 class ImageCreatorException(Exception):
     pass
@@ -243,7 +245,189 @@ class ImageGen:
         
         return filenames
 
-def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False):
+class ImageGenAsync:
+    """
+    Image generation by Microsoft Bing
+    Parameters:
+        auth_cookie: str
+    Optional Parameters:
+        debug_file: str
+        quiet: bool
+        all_cookies: list[dict]
+    """
+
+    def __init__(
+        self,
+        auth_cookie: str = None,
+        debug_file: Union[str, None] = None,
+        quiet: bool = False,
+        all_cookies: List[Dict] = None,
+    ) -> None:
+        if auth_cookie is None and not all_cookies:
+            raise ImageCreatorException("No auth cookie provided")
+        self.session = httpx.AsyncClient(
+            headers=HEADERS,
+            trust_env=True,
+        )
+        if auth_cookie:
+            self.session.cookies.update({"_U": auth_cookie})
+        if all_cookies:
+            for cookie in all_cookies:
+                self.session.cookies.update(
+                    {cookie["name"]: cookie["value"]},
+                )
+        self.quiet = quiet
+        self.debug_file = debug_file
+        if self.debug_file:
+            self.debug = partial(debug, self.debug_file)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *excinfo) -> None:
+        await self.session.aclose()
+
+    async def get_images(self, prompt: str) -> list:
+        """
+        Fetches image links from Bing
+        Parameters:
+            prompt: str
+        """
+        if not self.quiet:
+            print("Sending request...")
+        url_encoded_prompt = requests.utils.quote(prompt)
+        # https://www.bing.com/images/create?q=<PROMPT>&rt=3&FORM=GENCRE
+        url = f"{BING_URL}/images/create?q={url_encoded_prompt}&rt=3&FORM=GENCRE"
+        payload = f"q={url_encoded_prompt}&qs=ds"
+        response = await self.session.post(
+            url,
+            follow_redirects=False,
+            data=payload,
+        )
+        content = response.text
+        if "this prompt has been blocked" in content.lower():
+            raise ImageCreatorException(
+                "Your prompt has been blocked by Bing. Try to change any bad words and try again.",
+            )
+        if response.status_code != 302:
+            # if rt4 fails, try rt3
+            url = f"{BING_URL}/images/create?q={url_encoded_prompt}&rt=4&FORM=GENCRE"
+            response = await self.session.post(
+                url,
+                follow_redirects=False,
+                timeout=200,
+            )
+            if response.status_code != 302:
+                print(f"ERROR: {response.text}")
+                raise ImageCreatorException("Redirect failed")
+        # Get redirect URL
+        redirect_url = response.headers["Location"].replace("&nfy=1", "")
+        request_id = redirect_url.split("id=")[-1]
+        await self.session.get(f"{BING_URL}{redirect_url}")
+        # https://www.bing.com/images/create/async/results/{ID}?q={PROMPT}
+        polling_url = f"{BING_URL}/images/create/async/results/{request_id}?q={url_encoded_prompt}"
+        # Poll for results
+        if not self.quiet:
+            print("Waiting for results...")
+        while True:
+            if not self.quiet:
+                print(".", end="", flush=True)
+            # By default, timeout is 300s, change as needed
+            response = await self.session.get(polling_url)
+            if response.status_code != 200:
+                raise ImageCreatorException("Could not get results")
+            content = response.text
+            if content and content.find("errorMessage") == -1:
+                break
+
+            await asyncio.sleep(1)
+            continue
+        # Use regex to search for src=""
+        image_links = regex.findall(r'src="([^"]+)"', content)
+        # Remove size limit
+        normal_image_links = [link.split("?w=")[0] for link in image_links]
+        # Remove duplicates
+        normal_image_links = list(set(normal_image_links))
+
+        # Bad images
+        bad_images = [
+            "https://r.bing.com/rp/in-2zU3AJUdkgFe7ZKv19yPBHVs.png",
+            "https://r.bing.com/rp/TX9QuO3WzcCJz1uaaSwQAz39Kb0.jpg",
+        ]
+        for im in normal_image_links:
+            if im in bad_images:
+                raise ImageCreatorException("Unsafe image content detected")
+        # No images
+        if not normal_image_links:
+            raise ImageCreatorException("No images")
+        return normal_image_links
+
+    async def save_images(
+        self,
+        links: list,
+        output_dir: str,
+        download_count: int,
+        file_name: str = None,
+    ) -> None:
+        """
+        Saves images to output directory
+        """
+
+        if self.debug_file:
+            self.debug(download_message)
+        if not self.quiet:
+            print(download_message)
+        with contextlib.suppress(FileExistsError):
+            os.mkdir(output_dir)
+        try:
+            fn = f"{file_name}_" if file_name else ""
+            jpeg_index = len(os.listdir("images"))
+            filenames = []
+            for link in links[:download_count]:
+                while os.path.exists(
+                    os.path.join(output_dir, f"{fn}{jpeg_index}.jpeg")
+                ):
+                    jpeg_index += 1
+                response = await self.session.get(link)
+                if response.status_code != 200:
+                    raise ImageCreatorException("Could not download image")
+                # save response to file
+                file_name = os.path.join(output_dir, f"{fn}{jpeg_index}.jpeg")
+                filenames.append(file_name)
+                with open(
+                    os.path.join(output_dir, f"{fn}{jpeg_index}.jpeg"), "wb"
+                ) as output_file:
+                    output_file.write(response.content)
+                jpeg_index += 1
+        except httpx.InvalidURL as url_exception:
+            raise ImageCreatorException(
+                "Inappropriate contents found in the generated images. Please try again or try another prompt.",
+            ) from url_exception
+        return filenames
+
+
+async def async_image_gen(
+    prompt: str,
+    download_count: int,
+    output_dir: str,
+    u_cookie=None,
+    debug_file=None,
+    quiet=False,
+    all_cookies=None,
+):
+    async with ImageGenAsync(
+        u_cookie,
+        debug_file=debug_file,
+        quiet=quiet,
+        all_cookies=all_cookies,
+    ) as image_generator:
+        images = await image_generator.get_images(prompt)
+        filenames = await image_generator.save_images(
+            images, output_dir=output_dir, download_count=download_count
+        )
+        return filenames
+
+async def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False):
 
     if BING_COOKIE is None:
         raise ImageCreatorException("Could not find auth cookie")
@@ -251,15 +435,17 @@ def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False
     if n > 4:
         raise ImageCreatorException("The number of images must be 4 or less")
 
-    image_generator = ImageGen(
-        BING_COOKIE,
-        None,
-        quiet=quiet,
-    )
-    filenames = image_generator.save_images(
-        image_generator.get_images(prompt),
-        output_dir=output_dir,
-        download_count=n,
-    )
+    # image_generator = ImageGen(
+    #     BING_COOKIE,
+    #     None,
+    #     quiet=quiet,
+    # )
+    # filenames = image_generator.save_images(
+    #     image_generator.get_images(prompt),
+    #     output_dir=output_dir,
+    #     download_count=n,
+    # )
+
+    filenames = await async_image_gen(prompt, n, output_dir, BING_COOKIE, quiet=quiet)
 
     return filenames
