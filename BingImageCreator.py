@@ -1,5 +1,6 @@
 """
 CODE ORIGIN: https://github.com/acheong08/BingImageCreator/tree/main
+Command to get bing cookie: cookieStore.get("_U").then(result => console.log(result.value))
 """
 
 import contextlib
@@ -19,6 +20,9 @@ import httpx
 class ImageCreatorException(Exception):
     pass
 
+class RedirectFailedException(Exception):
+    pass
+
 BING_URL = os.getenv("BING_URL", "https://www.bing.com")
 # Generate random IP between range 13.104.0.0/14
 FORWARDED_IP = (
@@ -34,7 +38,6 @@ HEADERS = {
     "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
     "x-forwarded-for": FORWARDED_IP,
 }
-BING_COOKIE = None
 
 # Error messages
 error_timeout = "Your request has timed out."
@@ -140,7 +143,7 @@ class ImageGen:
                 if self.debug_file:
                     self.debug(f"ERROR: {error_redirect}")
                 print(f"ERROR: {response.text}")
-                raise ImageCreatorException(error_redirect)
+                raise RedirectFailedException(error_redirect)
         # Get redirect URL
         redirect_url = response.headers["Location"].replace("&nfy=1", "")
         request_id = redirect_url.split("id=")[-1]
@@ -319,7 +322,7 @@ class ImageGenAsync:
             )
             if response.status_code != 302:
                 print(f"ERROR: {response.text}")
-                raise ImageCreatorException("Redirect failed")
+                raise RedirectFailedException("Redirect failed")
         # Get redirect URL
         redirect_url = response.headers["Location"].replace("&nfy=1", "")
         request_id = redirect_url.split("id=")[-1]
@@ -427,9 +430,9 @@ async def async_image_gen(
         )
         return filenames
 
-async def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False):
+async def generate_image(prompt: str, output_dir: str, cookie: str, n: int = 4, quiet: bool = False):
 
-    if BING_COOKIE is None:
+    if cookie is None:
         raise ImageCreatorException("Could not find auth cookie")
 
     if n > 4:
@@ -446,6 +449,6 @@ async def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool =
     #     download_count=n,
     # )
 
-    filenames = await async_image_gen(prompt, n, output_dir, BING_COOKIE, quiet=quiet)
+    filenames = await async_image_gen(prompt, n, output_dir, cookie, quiet=quiet)
 
     return filenames

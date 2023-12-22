@@ -34,7 +34,7 @@ DEBUG_CHANNELS = TOKENS["debug_channels"]
 TOKEN = TOKENS["bot_token"]
 QUOTE_CHANNEL = TOKENS["quote_channel"]
 openai.api_key = TOKENS["openai_key"]
-BingImageCreator.BING_COOKIE = TOKENS["bing_cookie"]
+BING_COOKIES = TOKENS["bing_cookie"]
 
 WEREWOLF_GUILD_ID = TOKENS["werewolf_guild_id"]
 GM_ROLE_ID = TOKENS["gm_role_id"]
@@ -206,12 +206,18 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 async def image(interaction: discord.Interaction, prompt : str, number: Literal[1,2,3,4] = 4):
     await interaction.response.defer()
     filenames = []
-    try:
-        filenames = await BingImageCreator.generate_image(prompt, "images", number)
-    except BingImageCreator.ImageCreatorException as e:
-        await asyncio.sleep(3)
-        await interaction.followup.send(str(e))
-        return
+    for cookie in BING_COOKIES:
+        try:
+            filenames = await BingImageCreator.generate_image(prompt, "images", cookie, number)
+            break
+        except BingImageCreator.ImageCreatorException as e:
+            await asyncio.sleep(3)
+            await interaction.followup.send(str(e))
+            return
+        except BingImageCreator.RedirectFailedException as e:
+            continue
+    if filenames == []:
+        await interaction.followup.send("Redirect Failed")
     imagefiles = []
     for filename in filenames:
         try:
