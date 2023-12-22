@@ -219,8 +219,8 @@ async def image(interaction: discord.Interaction, prompt : str, number: Literal[
     #cleanup
     for filename in filenames:
         os.remove(filename)
-    os.rmdir("images")
-    
+    if len(os.listdir("images")) == 0:
+        os.rmdir("images")
 
     
 @tree.command(name = "boo", description = "Booooooo!", guilds=GUILDS)
