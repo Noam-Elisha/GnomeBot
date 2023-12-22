@@ -213,7 +213,7 @@ async def image(interaction: discord.Interaction, prompt : str, number: Literal[
         await interaction.followup.send(str(e))
         return
     imagefiles = []
-    for filename in filename:
+    for filename in filenames:
         try:
             with open(filename, "r", encoding='utf-8') as f:
                 if f.read(4) == "<svg":
