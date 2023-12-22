@@ -322,6 +322,8 @@ class ImageGenAsync:
             )
             if response.status_code != 302:
                 print(f"ERROR: {response.text}")
+                with open("redirect_debug.txt", "w") as f:
+                    f.write(response.text)
                 raise RedirectFailedException("Redirect failed")
         # Get redirect URL
         redirect_url = response.headers["Location"].replace("&nfy=1", "")
