@@ -182,7 +182,7 @@ class ImageGen:
         ]
         for img in normal_image_links:
             if img in bad_images:
-                raise ImageCreatorException("Bad images")
+                raise ImageCreatorException("Unsafe image content detected")
         # No images
         if not normal_image_links:
             raise ImageCreatorException(error_no_images)
