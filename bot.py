@@ -203,7 +203,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 @tree.command(name = "image", description = "Generate an image with Dalle3", guilds=GUILDS)
 @app_commands.describe(prompt="What image to generate")
 @app_commands.describe(number="How many images to generate")
-async def image(interaction: discord.Interaction, prompt : str, number : app_commands.Range[int, 1, 5] = 1):
+async def image(interaction: discord.Interaction, prompt : str, number: Literal[1,2,3,4] = 1):
     await interaction.response.defer()
     try:
         BingImageCreator.generate_image(prompt, "images", number)
