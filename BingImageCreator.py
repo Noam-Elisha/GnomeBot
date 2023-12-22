@@ -209,9 +209,12 @@ class ImageGen:
             print(download_message)
         with contextlib.suppress(FileExistsError):
             os.mkdir(output_dir)
+        
+        filenames = []
+
         try:
             fn = f"{file_name}_" if file_name else ""
-            jpeg_index = 0
+            jpeg_index = len(os.listdir(output_dir))
 
             if download_count:
                 links = links[:download_count]
@@ -225,8 +228,10 @@ class ImageGen:
                 if response.status_code != 200:
                     raise ImageCreatorException("Could not download image")
                 # save response to file
+                file_name = os.path.join(output_dir, f"{fn}{jpeg_index}.jpeg")
+                filenames.append(file_name)
                 with open(
-                    os.path.join(output_dir, f"{fn}{jpeg_index}.jpeg"), "wb"
+                    file_name, "wb"
                 ) as output_file:
                     output_file.write(response.content)
                 jpeg_index += 1
@@ -235,6 +240,8 @@ class ImageGen:
             raise ImageCreatorException(
                 "Inappropriate contents found in the generated images. Please try again or try another prompt.",
             ) from url_exception
+        
+        return filenames
 
 def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False):
 
@@ -249,8 +256,10 @@ def generate_image(prompt: str, output_dir: str, n: int = 1, quiet: bool = False
         None,
         quiet=quiet,
     )
-    image_generator.save_images(
+    filenames = image_generator.save_images(
         image_generator.get_images(prompt),
         output_dir=output_dir,
         download_count=n,
     )
+
+    return filenames

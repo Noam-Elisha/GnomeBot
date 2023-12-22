@@ -202,22 +202,23 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 
 @tree.command(name = "image", description = "Generate an image with Dalle3", guilds=GUILDS)
 @app_commands.describe(prompt="What image to generate")
-@app_commands.describe(number="How many images to generate")
+@app_commands.describe(number="How many images to generate (must be less than 4)")
 async def image(interaction: discord.Interaction, prompt : str, number: Literal[1,2,3,4] = 1):
     await interaction.response.defer()
+    filenames = []
     try:
-        BingImageCreator.generate_image(prompt, "images", number)
+        filenames = BingImageCreator.generate_image(prompt, "images", number)
     except BingImageCreator.ImageCreatorException as e:
         time.sleep(3)
         await interaction.followup.send(str(e))
         return
     
-    imagefiles = [discord.File(f"images/{i}") for i in os.listdir("images")]
+    imagefiles = [discord.File(filename) for filename in filenames]
     await interaction.followup.send(files=imagefiles)
     
     #cleanup
-    for i in os.listdir("images"):
-        os.remove(f"images/{i}")
+    for filename in filenames:
+        os.remove(filename)
     os.rmdir("images")
     
 
