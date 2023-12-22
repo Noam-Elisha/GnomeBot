@@ -212,8 +212,15 @@ async def image(interaction: discord.Interaction, prompt : str, number: Literal[
         await asyncio.sleep(3)
         await interaction.followup.send(str(e))
         return
-    
-    imagefiles = [discord.File(filename) for filename in filenames]
+    imagefiles = []
+    for filename in filename:
+        try:
+            with open(filename, "r", encoding='utf-8') as f:
+                if f.read(4) == "<svg":
+                    continue
+        except UnicodeDecodeError:
+            imagefiles.append(discord.File(filename)) # Fond non-text data
+    # imagefiles = [discord.File(filename) for filename in filenames]
     await interaction.followup.send(files=imagefiles)
     
     #cleanup
