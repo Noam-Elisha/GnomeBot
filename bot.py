@@ -173,37 +173,37 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
         return
     await interaction.followup.send(response['choices'][0]['message']['content'])
 
-@tree.command(name = "image", description = "Make gnomebot generate an image", guilds=GUILDS)
-@app_commands.describe(prompt="What image to generate")
-@app_commands.describe(quality="Quality of the image to generade (hd is slower)")
-@app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
-async def image(interaction: discord.Interaction, prompt : str, quality: Literal["standard"] = "standard",
-                    size: Literal["1024x1024", "512×512", "256×256"] = "1024x1024"):
-    await interaction.response.defer()
+# @tree.command(name = "image", description = "Make gnomebot generate an image", guilds=GUILDS)
+# @app_commands.describe(prompt="What image to generate")
+# @app_commands.describe(quality="Quality of the image to generade (hd is slower)")
+# @app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
+# async def image(interaction: discord.Interaction, prompt : str, quality: Literal["standard"] = "standard",
+#                     size: Literal["1024x1024", "512×512", "256×256"] = "1024x1024"):
+#     await interaction.response.defer()
 
-    try:
-        response = openai.images.generate(
-                model="dall-e-2",
-                prompt=prompt,
-                size=size,
-                quality=quality,
-                n=1,
-                response_format="b64_json"
-            )
-    except openai.BadRequestError as e:
-        time.sleep(3)
-        await interaction.followup.send(e.body["message"])
-        return
+#     try:
+#         response = openai.images.generate(
+#                 model="dall-e-2",
+#                 prompt=prompt,
+#                 size=size,
+#                 quality=quality,
+#                 n=1,
+#                 response_format="b64_json"
+#             )
+#     except openai.BadRequestError as e:
+#         time.sleep(3)
+#         await interaction.followup.send(e.body["message"])
+#         return
 
-    imgfile = BytesIO(b64decode(response.data[0].b64_json))
-    imgfile.name = "image.png"
-    img = discord.File(imgfile)
-    await interaction.followup.send(file=img)
+#     imgfile = BytesIO(b64decode(response.data[0].b64_json))
+#     imgfile.name = "image.png"
+#     img = discord.File(imgfile)
+#     await interaction.followup.send(file=img)
 
-@tree.command(name = "dalle", description = "Generate an image with Dalle3", guilds=GUILDS)
+@tree.command(name = "image", description = "Generate an image with Dalle3", guilds=GUILDS)
 @app_commands.describe(prompt="What image to generate")
 @app_commands.describe(number="How many images to generate")
-async def dalle(interaction: discord.Interaction, prompt : str, number : app_commands.Range[int, 1, 5] = 1):
+async def image(interaction: discord.Interaction, prompt : str, number : app_commands.Range[int, 1, 5] = 1):
     await interaction.response.defer()
     try:
         BingImageCreator.generate_image(prompt, "images", number)
@@ -216,8 +216,8 @@ async def dalle(interaction: discord.Interaction, prompt : str, number : app_com
     await interaction.followup.send(files=imagefiles)
     
     #cleanup
-    for file in os.listdir("images"):
-        os.rmdir(f"images/{file}")
+    for i in os.listdir("images"):
+        os.remove(f"images/{i}")
     os.rmdir("images")
     
 
