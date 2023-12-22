@@ -13,6 +13,8 @@ from PIL import ImageDraw
 from io import BytesIO
 from base64 import b64decode
 
+import BingImageCreator
+
 with open("tokens.json", "r") as f:
     TOKENS = json.load(f)
 with open("channel_locked.gb", "r") as f:
@@ -32,6 +34,7 @@ DEBUG_CHANNELS = TOKENS["debug_channels"]
 TOKEN = TOKENS["bot_token"]
 QUOTE_CHANNEL = TOKENS["quote_channel"]
 openai.api_key = TOKENS["openai_key"]
+BingImageCreator.BING_COOKIE = TOKENS["bing_cookie"]
 
 WEREWOLF_GUILD_ID = TOKENS["werewolf_guild_id"]
 GM_ROLE_ID = TOKENS["gm_role_id"]
@@ -174,7 +177,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
 @app_commands.describe(prompt="What image to generate")
 @app_commands.describe(quality="Quality of the image to generade (hd is slower)")
 @app_commands.describe(size="Size of the image to generate (1024x1024 is fastest)")
-async def respond(interaction: discord.Interaction, prompt : str, quality: Literal["standard"] = "standard",
+async def image(interaction: discord.Interaction, prompt : str, quality: Literal["standard"] = "standard",
                     size: Literal["1024x1024", "512×512", "256×256"] = "1024x1024"):
     await interaction.response.defer()
 
@@ -196,6 +199,27 @@ async def respond(interaction: discord.Interaction, prompt : str, quality: Liter
     imgfile.name = "image.png"
     img = discord.File(imgfile)
     await interaction.followup.send(file=img)
+
+@tree.command(name = "dalle", description = "Generate an image with Dalle3", guilds=GUILDS)
+@app_commands.describe(prompt="What image to generate")
+@app_commands.describe(number="How many images to generate")
+async def dalle(interaction: discord.Interaction, prompt : str, number : app_commands.Range[int, 1, 5] = 1):
+    await interaction.response.defer()
+    try:
+        BingImageCreator.generate_image(prompt, "images", number)
+    except BingImageCreator.ImageCreatorException as e:
+        time.sleep(3)
+        await interaction.followup.send(str(e))
+        return
+    
+    imagefiles = [discord.File(f"images/{i}.jpeg") for i in os.listdir("images")]
+    await interaction.followup.send(files=imagefiles)
+    
+    #cleanup
+    for file in os.listdir("images"):
+        os.rmdir(f"images/{file}.jpeg")
+    os.rmdir("images")
+    
 
     
 @tree.command(name = "boo", description = "Booooooo!", guilds=GUILDS)
