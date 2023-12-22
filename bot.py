@@ -212,12 +212,12 @@ async def dalle(interaction: discord.Interaction, prompt : str, number : app_com
         await interaction.followup.send(str(e))
         return
     
-    imagefiles = [discord.File(f"images/{i}.jpeg") for i in os.listdir("images")]
+    imagefiles = [discord.File(f"images/{i}") for i in os.listdir("images")]
     await interaction.followup.send(files=imagefiles)
     
     #cleanup
     for file in os.listdir("images"):
-        os.rmdir(f"images/{file}.jpeg")
+        os.rmdir(f"images/{file}")
     os.rmdir("images")
     
 
