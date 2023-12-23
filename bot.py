@@ -171,7 +171,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
     elif stop_response == "null" or stop_response == None:
         await interaction.followup.send("Error: something went wrong")
         return
-    await interaction.followup.send(response['choices'][0]['message']['content'])
+    await interaction.followup.send(response.choices[0].message.content)
 
 # @tree.command(name = "image", description = "Make gnomebot generate an image", guilds=GUILDS)
 # @app_commands.describe(prompt="What image to generate")
