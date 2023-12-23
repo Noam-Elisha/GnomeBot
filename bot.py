@@ -160,7 +160,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
             }
         )
     try:
-        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+        response = openai.chat.completions.create(model="gpt-3.5-turbo", messages=messages)
     except openai.error.RateLimitError:
         interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral =True)
         return
