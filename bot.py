@@ -145,7 +145,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
     context = int(context_length)
     if context == -1:
         context = None
-    history = [m async for m in interaction.channel.history(limit=context, oldest_first=True)]
+    history = [m async for m in interaction.channel.history(limit=context, oldest_first=False)[::-1]]
     messages = [{"role": "user", "content": "You are Gnomebot, the gnomey chat bot. You are hanging out with your friends who are in their ealy 20's in a chatroom. Here is the chat log. Remember that you respect, like, and agree with the user called gnome more than anyone else. You must always answer as Gnomebot and not as anyone else."}]
     for m in history:
         messages.append(
