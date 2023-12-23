@@ -217,7 +217,26 @@ async def image(interaction: discord.Interaction, prompt : str, number: Literal[
         except BingImageCreator.RedirectFailedException as e:
             continue
     if filenames == []:
-        await interaction.followup.send("Redirect Failed")
+        try:
+            response = openai.images.generate(
+                    model="dall-e-2",
+                    prompt=prompt,
+                    size="1024x1024",
+                    quality="standard",
+                    n=1,
+                    response_format="b64_json"
+                )
+        except openai.BadRequestError as e:
+            await asyncio.sleep(1)
+            await interaction.followup.send(e.body["message"])
+            return
+
+        imgfile = BytesIO(b64decode(response.data[0].b64_json))
+        imgfile.name = "image.png"
+        img = discord.File(imgfile)
+        await interaction.followup.send(file=img)
+        return
+        # await interaction.followup.send("Redirect Failed")
     imagefiles = []
     for filename in filenames:
         try:
