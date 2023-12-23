@@ -164,7 +164,7 @@ async def respond(interaction: discord.Interaction, message : str = None, contex
     except openai.error.RateLimitError:
         interaction.followup.send(content = "Model is currently overloaded. Try again later.", ephemeral =True)
         return
-    stop_response = response["choices"][0]["finish_reason"]
+    stop_response = response.choices[0].finish_reason
     if stop_response == "content_filter":
         await interaction.followup.send("Error: content filter")
         return
