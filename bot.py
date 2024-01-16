@@ -359,17 +359,17 @@ async def unlock(interaction: discord.Interaction):
 @tree.command(name= "miles", description= "Track group exercise miles", guilds=GUILDS)
 @app_commands.describe(activity="What activity you did")
 @app_commands.describe(distance="How far you went")
-async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run", "Bike", "Skate", "Ski", "Swim"] = None, distance: float = None):
+async def miles(interaction: discord.Interaction, activity: Literal["Walking", "Running", "Biking", "Skating", "Skiing", "Swimming"] = None, distance: float = None):
     with open("data.json", "r") as f:
         data = json.load(f)
     if activity is None and distance is None:
         embed = discord.Embed(title="Miles Traveled", description="Group totals")
-        embed.add_field(name="Walk", value=str(data["Walk"]), inline=False)
-        embed.add_field(name="Run", value=str(data["Run"]), inline=False)
-        embed.add_field(name="Bike", value=str(data["Bike"]), inline=False)
-        embed.add_field(name="Skate", value=str(data["Skate"]), inline=False)
-        embed.add_field(name="Ski", value=str(data["Ski"]), inline=False)
-        embed.add_field(name="Swim", value=str(data["Swim"]), inline=False)
+        embed.add_field(name="Walking", value=str(data["Walking"]), inline=False)
+        embed.add_field(name="Running", value=str(data["Running"]), inline=False)
+        embed.add_field(name="Biking", value=str(data["Biking"]), inline=False)
+        embed.add_field(name="Skating", value=str(data["Skating"]), inline=False)
+        embed.add_field(name="Skiing", value=str(data["Skiing"]), inline=False)
+        embed.add_field(name="Swimming", value=str(data["Swimming"]), inline=False)
         await interaction.response.send_message(embed=embed)
         return
     if activity is None or distance is None:
