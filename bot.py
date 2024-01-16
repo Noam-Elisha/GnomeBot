@@ -376,6 +376,8 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run
         interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
         return
     data["activity"] += distance
+    with open("data.json", "r") as f:
+        data = json.dump(data, f)
 
     
 
@@ -406,7 +408,7 @@ async def on_ready():
                 "Ski":0, 
                 "Swim":0
             }
-            json.dump(f)
+            json.dump(dict, f)
     await debug("Gnomebot is online!")
     print("Gnomebot is Online!")
 
