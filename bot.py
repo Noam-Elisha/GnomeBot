@@ -370,10 +370,10 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run
         embed.add_field(name="Skate", value=str(data["Skate"]), inline=False)
         embed.add_field(name="Ski", value=str(data["Ski"]), inline=False)
         embed.add_field(name="Swim", value=str(data["Swim"]), inline=False)
-        interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed)
         return
     if activity is None or distance is None:
-        interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
+        await interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
         return
     data["activity"] += distance
     with open("data.json", "r") as f:
