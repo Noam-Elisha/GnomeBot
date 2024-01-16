@@ -355,6 +355,31 @@ async def unlock(interaction: discord.Interaction):
     global CHANNEL_LOCKED
     CHANNEL_LOCKED = False
 
+
+@tree.command(name= "miles", description= "Track group exercise miles", guilds=GUILDS)
+@app_commands.describe(activity="What activity you did")
+@app_commands.describe(distance="How far you went")
+async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run", "Bike", "Skate", "Ski", "Swim"] = None, distance: float = None):
+    with open("data.json", "r") as f:
+        data = json.load(f)
+    if activity is None and distance is None:
+        embed = discord.Embed(title="Miles Traveled", description="Group totals")
+        embed.add_field(name="Walk", value=str(data["Walk"]), inline=False)
+        embed.add_field(name="Run", value=str(data["Run"]), inline=False)
+        embed.add_field(name="Bike", value=str(data["Bike"]), inline=False)
+        embed.add_field(name="Skate", value=str(data["Skate"]), inline=False)
+        embed.add_field(name="Ski", value=str(data["Ski"]), inline=False)
+        embed.add_field(name="Swim", value=str(data["Swim"]), inline=False)
+        interaction.response.send_message(embed=embed)
+        return
+    if activity is None or distance is None:
+        interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
+        return
+    data["activity"] += distance
+
+    
+
+
 @client.event
 async def on_message(message):
     if CHANNEL_LOCKED:
@@ -371,6 +396,17 @@ async def debug(message):
 @client.event
 async def on_ready():
     await sync_commands()
+    if not os.path.exists("data.json"):
+        with open("data.json", "w") as f:
+            dict = {
+                "Walk":0, 
+                "Run":0, 
+                "Bike":0, 
+                "Skate":0, 
+                "Ski":0, 
+                "Swim":0
+            }
+            json.dump(f)
     await debug("Gnomebot is online!")
     print("Gnomebot is Online!")
 
