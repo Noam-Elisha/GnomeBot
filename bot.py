@@ -378,6 +378,7 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run
     data["activity"] += distance
     with open("data.json", "r") as f:
         data = json.dump(data, f)
+    await interaction.response.send_message(f"Added {distance} miles to {activity}")
 
     
 
