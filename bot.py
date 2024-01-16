@@ -402,12 +402,12 @@ async def on_ready():
     if not os.path.exists("data.json"):
         with open("data.json", "w") as f:
             dict = {
-                "Walk":0, 
-                "Run":0, 
-                "Bike":0, 
-                "Skate":0, 
-                "Ski":0, 
-                "Swim":0
+                "Walking":0, 
+                "Running":0, 
+                "Biking":0, 
+                "Skating":0, 
+                "Skiing":0, 
+                "Swimming":0
             }
             json.dump(dict, f)
     await debug("Gnomebot is online!")
