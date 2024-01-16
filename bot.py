@@ -375,7 +375,7 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walk", "Run
     if activity is None or distance is None:
         await interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
         return
-    data["activity"] += distance
+    data[activity] += distance
     with open("data.json", "r") as f:
         data = json.dump(data, f)
     await interaction.response.send_message(f"Added {distance} miles to {activity}")
