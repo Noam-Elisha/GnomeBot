@@ -356,7 +356,7 @@ async def unlock(interaction: discord.Interaction):
     CHANNEL_LOCKED = False
 
 
-@tree.command(name= "miles", description= "Track group exercise miles", guilds=GUILDS)
+@tree.command(name= "miles", description= "Track group exercise miles (send with no arguments to see totals)", guilds=GUILDS)
 @app_commands.describe(activity="What activity you did")
 @app_commands.describe(distance="How far you went")
 async def miles(interaction: discord.Interaction, activity: Literal["Walking", "Running", "Biking", "Skating", "Skiing", "Swimming"] = None, distance: float = None):
@@ -379,9 +379,6 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walking", "
     with open("data.json", "w") as f:
         data = json.dump(data, f)
     await interaction.response.send_message(f"Added {distance} miles to {activity}", ephemeral=True)
-
-    
-
 
 @client.event
 async def on_message(message):
