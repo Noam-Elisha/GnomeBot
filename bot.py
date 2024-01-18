@@ -359,7 +359,7 @@ async def unlock(interaction: discord.Interaction):
 @tree.command(name= "miles", description= "Track group exercise miles (send with no arguments to see totals)", guilds=GUILDS)
 @app_commands.describe(activity="What activity you did")
 @app_commands.describe(distance="How far you went")
-async def miles(interaction: discord.Interaction, activity: Literal["Walking", "Running", "Biking", "Skating", "Skiing", "Swimming"] = None, distance: float = None):
+async def miles(interaction: discord.Interaction, activity: Literal["Walking", "Running", "Biking", "Skating", "Skiing", "Swimming", "Weightlifting"] = None, distance: float = None):
     with open("data.json", "r") as f:
         data = json.load(f)
     if activity is None and distance is None:
@@ -370,11 +370,14 @@ async def miles(interaction: discord.Interaction, activity: Literal["Walking", "
         embed.add_field(name="Skating", value=str(data["Skating"]), inline=False)
         embed.add_field(name="Skiing", value=str(data["Skiing"]), inline=False)
         embed.add_field(name="Swimming", value=str(data["Swimming"]), inline=False)
+        embed.add_field(name="Weightlifting", value=str(data["Weightlifting"]), inline=False)
         await interaction.response.send_message(embed=embed)
         return
     if activity is None or distance is None:
         await interaction.response.send_message("You must select both an activity and a distance", ephemeral=True)
         return
+    if activity not in data.keys():
+        data[activity] = 0
     data[activity] += distance
     with open("data.json", "w") as f:
         data = json.dump(data, f)
